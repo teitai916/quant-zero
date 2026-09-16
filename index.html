@@ -3,19 +3,61 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<meta http-equiv="refresh" content="0; url=tw-semi-gm-dsi/">
-<title>quant-zero</title>
+<title>quant-zero｜量化與總經圖表集</title>
 <style>
-  body { background:#12151c; color:#c9d1d9; font:15px/1.7 system-ui,-apple-system,"Segoe UI","Microsoft JhengHei",sans-serif;
-         margin:0; min-height:100vh; display:flex; align-items:center; justify-content:center; }
-  main { text-align:center; padding:32px; }
-  a { color:#ff8c3a; text-decoration:none; border-bottom:1px solid rgba(255,140,58,.4); padding-bottom:2px; }
-  a:hover { border-bottom-color:#ff8c3a; }
+  :root{ --bg:#0f1115; --panel:#171a21; --line:#262b33; --text:#e6e8eb;
+         --muted:#8b93a1; --accent:#3fc1c9; }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--text);min-height:100vh;
+       font:15px/1.7 system-ui,-apple-system,"Segoe UI","Noto Sans TC","Microsoft JhengHei",sans-serif;
+       display:flex;align-items:center;justify-content:center;padding:40px 20px}
+  main{width:100%;max-width:720px}
+  h1{margin:0 0 6px;font-size:21px;font-weight:600;letter-spacing:.3px}
+  .sub{color:var(--muted);font-size:13px;margin-bottom:22px}
+  a.item{display:block;background:var(--panel);border:1px solid var(--line);
+         border-radius:10px;padding:14px 17px;margin-bottom:10px;text-decoration:none;
+         transition:.15s}
+  a.item:hover{background:#1d222b;border-color:#3a4250;transform:translateX(2px)}
+  .t{color:var(--text);font-size:15px;font-weight:600;margin-bottom:3px}
+  .d{color:var(--muted);font-size:12.5px;line-height:1.6}
+  .tag{display:inline-block;font-size:11px;padding:1px 7px;border-radius:4px;margin-left:8px;
+       background:rgba(63,193,201,.13);color:var(--accent);border:1px solid rgba(63,193,201,.35);
+       vertical-align:1px}
+  footer{color:var(--muted);font-size:12px;margin-top:20px;line-height:1.8}
+  code{background:#1b1f27;border:1px solid var(--line);border-radius:4px;padding:1px 5px;
+       font-size:11.5px;color:#a5d6d9}
 </style>
 </head>
 <body>
 <main>
-  <p>正在前往 <a href="tw-semi-gm-dsi/">台灣半導體業 毛利率 vs 庫存天數</a>…</p>
+  <h1>quant-zero</h1>
+  <div class="sub">量化與總經研究圖表集｜每頁為單檔離線 HTML（ECharts / Plotly 內嵌）</div>
+
+  <a class="item" href="fed-watch-vs-actual/">
+    <div class="t">CME FedWatch 預測 vs 實際<span class="tag">最新</span></div>
+    <div class="d">台灣時間軸上的市場隱含利率路徑偏差追蹤：滾動 90 天的加息機率與預期次數，
+      對照實際政策變動幅度與次數，並附逐次決議對照與當期市場定價分布。</div>
+  </a>
+
+  <a class="item" href="tw-semi-gm-dsi/">
+    <div class="t">台灣半導體業 毛利率 vs 庫存天數</div>
+    <div class="d">以月營收 OpenAPI 選樣、FinMind 財報自算產業級比率，追蹤毛利率與平均售貨日數的長期關係。</div>
+  </a>
+
+  <a class="item" href="inflation-nowcast/">
+    <div class="t">美國通膨 Nowcasting</div>
+    <div class="d">Cleveland Fed 對 CPI / Core CPI / PCE / Core PCE 的即時預測，對照官方後續公布的實際值。</div>
+  </a>
+
+  <a class="item" href="btc-liquidity/">
+    <div class="t">BTC 流動性監控</div>
+    <div class="d">淨流動性轉向訊號追蹤：Fed 資產負債表、M2 年增、DXY 與 BTC 的相關性與背離。</div>
+  </a>
+
+  <footer>
+    發布於 GitHub Pages：<code>https://teitai916.github.io/quant-zero/</code><br>
+    各頁為獨立目錄，可直接以 <code>/quant-zero/&lt;slug&gt;/</code> 連結。
+  </footer>
 </main>
 </body>
 </html>
