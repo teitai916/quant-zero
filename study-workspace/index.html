@@ -1,7 +1,6 @@
 <!DOCTYPE html>
 <html data-page-node-id="FIhqWoFYr53NtJKG7jwINa" lang="zh-CN">
 <head data-page-node-id="7m9YBg45QyRho6CGR3MeGV">
-<script data-page-node-id="vCzRY8Zo777hE7dhbi4RSX" src="/page/page_comm/inject.js"></script>
 <meta data-page-node-id="w4roQc6yxYJwlzrjkkbIqj" charset="UTF-8">
 <meta data-page-node-id="yMXqcEKSCZ62v6GkTOUX8W" content="width=device-width, initial-scale=1.0, viewport-fit=cover" name="viewport">
 <title data-page-node-id="D2PVO2tBFKy6mOP6MPQu91" data-pnid-children="nCLa2pWJIQwfNugP5dKiLx">中二学习台</title>
@@ -328,6 +327,12 @@ main{max-width:960px; margin:0 auto; padding:16px 14px 24px}
 .dr-item .t svg{width:16px;height:16px; color:var(--green)}
 .dr-item .d{font-size:12.5px; color:var(--ink2); margin-bottom:8px}
 .dr-btns{display:flex; gap:8px}
+.sync-row{display:flex; gap:8px; align-items:center; flex-wrap:wrap}
+.sync-row input{flex:1; min-width:160px; height:48px; padding:0 14px; font-size:16px; border:1px solid var(--line); border-radius:10px; background:var(--card); color:var(--ink); box-sizing:border-box}
+.sync-status{font-size:12.5px; color:var(--ink2); font-weight:600}
+.sync-status.ok{color:var(--ok)}
+.sync-status.syncing{color:var(--warn)}
+.sync-status.error{color:var(--red)}
 .hold-btn{position:relative; overflow:hidden}
 .hold-btn .prog{position:absolute; inset:0; background:rgba(220,38,38,.25); width:0%}
 .guide{font-size:12.5px; color:var(--ink2); line-height:1.8}
@@ -639,6 +644,19 @@ canvas#posterCanvas{display:none}
     </div>
     <input data-page-node-id="9BCwguDfJpWS3J43lX6VB8" accept="application/json,.json" id="importFile" type="file" style="display:none">
   </div>
+  <div class="dr-item">
+    <div class="t"><svg fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewBox="0 0 24 24"><path d="M17.5 19a4.5 4.5 0 0 0 0-9 6 6 0 0 0-11.4 1.5A3.5 3.5 0 0 0 6.5 19"/><path d="M12 12v7"/><path d="m8 15 4-4 4 4"/></svg>云同步</div>
+    <div class="d">在每台设备输入同一个同步码，即可共享同一份数据（手机 / 电脑 / 平板通用）。同步码请自己记好，不要泄露给别人。</div>
+    <div class="sync-row">
+      <input id="syncCodeInput" type="text" placeholder="输入同步码（6 位以上）" maxlength="32" autocomplete="off" spellcheck="false">
+      <button class="btn ghost sm" id="syncGenBtn" type="button">随机生成</button>
+    </div>
+    <div class="sync-row" style="margin-top:10px">
+      <button class="btn ghost sm" id="syncSaveBtn" type="button">保存并同步</button>
+      <button class="btn ghost sm" id="syncNowBtn" type="button">立即同步</button>
+      <span class="sync-status off" id="syncStatus">未设置同步码</span>
+    </div>
+  </div>
   <div data-page-node-id="s0gfSOQmQw1k7b3YXPz3l5" class="dr-item">
     <div data-page-node-id="MC5qEgK5NfbtOBC5DsYCj8" class="t" style="color:var(--red)"><svg data-page-node-id="bTkCZI9F8BI72CicmMVlwt" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewBox="0 0 24 24"><path data-page-node-id="8yQYLupIvI3XwSqucYCrBN" d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><path data-page-node-id="Dc504kKNwZZkqH4RRC5ZS6" d="M12 9v4"/><path data-page-node-id="6mtnITJMCotcM3HKsyJrmJ" d="M12 17h.01"/></svg><!--pnid:ZUGvfvsSv3M130lmlRY0Fy-->清空全部数据</div>
     <div data-page-node-id="4ud2MfGl3ghDDIxnyHDij7" class="d"><!--pnid:cuPL1u70IVaL7lUnMiLHIc-->删除所有记录和进度，无法恢复。</div>
@@ -757,146 +775,52 @@ function toast(msg){const t=$("#toast"); t.textContent=msg; t.classList.add("sho
 
 /* ==================== 状态 ==================== */
 const LS_KEY="k12_study_v1";
-var DATABASE_ID='CCXcZ30YEQT5PczwZKM8Qd';
-var ONLINE=false, LOCAL_ONLY=false, _db=null;
-try{if(window.__SMART_PAGE__&&window.__SMART_PAGE__.database){_db=window.__SMART_PAGE__.database;ONLINE=true}}catch(e){}
+const SYNC_CODE_KEY="k12_study_sync_code";
+const SUPABASE_URL="https://quyegvopfyiqoepuecyl.supabase.co";
+const SUPABASE_KEY="sb_publishable_Qe3J-YrOfezq7jY-w-HMJQ_Oz2zJjYm";
+const SUPABASE_TABLE="study_state";
 let state=null;
-function defaultState(){return {version:2,settings:{grade:"g7",installedSample:false},homework:[],projects:[],memory:{},mistakes:[],exp:0,checkins:[],log:[],sampleBaseline:null,meta:{lastOpenDate:null,userActionDates:[]}}}
-function save(){try{localStorage.setItem(LS_KEY,JSON.stringify(state))}catch(e){toast("存储空间不足，无法保存")}}
-function rowToRec(row){
- if(!row)return null;
- var g=function(k){var v=row[k];if(v==null)return null;if(typeof v==='object'&&v.text!=null)return v.text;return v};
- return{id:row.record_id||uid(),subj:g('科目')||'其他',text:g('作业内容')||'',due:g('截止日期')||'',created:g('记录日期')||today(),done:!!g('是否完成')}
+let _syncCode=null, _syncTimer=null, _syncStatus="off";
+function defaultState(){return {version:2,settings:{grade:"g7",installedSample:false},homework:[],projects:[],memory:{},mistakes:[],exp:0,checkins:[],log:[],sampleBaseline:null,meta:{lastOpenDate:null,userActionDates:[]},_syncSaved:0}}
+function _writeLocal(){try{localStorage.setItem(LS_KEY,JSON.stringify(state))}catch(e){toast("存储空间不足，无法保存")}}
+function save(){state._syncSaved=Date.now(); _writeLocal(); scheduleCloudPush()}
+function saveQuiet(){_writeLocal()}
+
+/* ==================== 云同步（Supabase 整包） ==================== */
+function getSyncCode(){if(_syncCode===null){try{_syncCode=localStorage.getItem(SYNC_CODE_KEY)||""}catch(e){_syncCode=""}}return _syncCode}
+function setSyncCode(code){code=(code||"").trim(); _syncCode=code; try{if(code)localStorage.setItem(SYNC_CODE_KEY,code);else localStorage.removeItem(SYNC_CODE_KEY)}catch(e){}}
+function syncStatusText(){return _syncStatus==="off"?"未设置同步码":_syncStatus==="syncing"?"同步中…":_syncStatus==="ok"?"已同步":"同步失败"}
+function updateSyncUI(){const el=$("#syncStatus"); if(!el)return; el.textContent=syncStatusText(); el.className="sync-status "+_syncStatus}
+function cloudFetch(path,opts){
+  opts=opts||{};
+  const headers={"apikey":SUPABASE_KEY,"Authorization":"Bearer "+SUPABASE_KEY};
+  if(opts.body!=null){headers["Content-Type"]="application/json"; headers["Prefer"]="return=representation"}
+  return fetch(SUPABASE_URL+"/rest/v1/"+path,{method:opts.method||"GET",headers:headers,body:opts.body!=null?JSON.stringify(opts.body):undefined})
+    .then(r=>{if(!r.ok)throw new Error("HTTP "+r.status); return r.json().catch(()=>null)});
 }
-function pullRemote(cb){
- if(!ONLINE||LOCAL_ONLY){if(cb)cb(false);return}
- var allRows=[],cursor=null;
- function fetchPage(){
-  _db.query({databaseId:DATABASE_ID,pageSize:100,startCursor:cursor}).then(function(result){
-   allRows=allRows.concat(result.results||[]);
-   if(result.hasMore&&result.nextCursor){cursor=result.nextCursor;fetchPage()}
-   else{
-    var recs=allRows.map(rowToRec).filter(Boolean);
-    if(recs.length){
-     var existingIds=new Set(state.homework.map(function(r){return r.id}));
-     recs.forEach(function(r){if(!existingIds.has(r.id))state.homework.push(r)});
-     save()
-    }
-    if(cb)cb(true,recs.length)
-   }
-  }).catch(function(err){console.error('[database] pull failed:',err);if(cb)cb(false)})
- }
- fetchPage()
+function scheduleCloudPush(){const code=getSyncCode(); if(!code)return; clearTimeout(_syncTimer); _syncTimer=setTimeout(cloudPush,1000)}
+function cloudPush(){
+  const code=getSyncCode(); if(!code)return Promise.resolve(false);
+  _syncStatus="syncing"; updateSyncUI();
+  return cloudFetch(SUPABASE_TABLE+"?on_conflict=code",{method:"POST",body:[{code:code,data:state}]})
+    .then(()=>{_syncStatus="ok"; updateSyncUI(); return true})
+    .catch(err=>{_syncStatus="error"; updateSyncUI(); console.error("[cloud] push failed:",err); return false});
 }
-function pushHwRemote(hw){
- if(!ONLINE||LOCAL_ONLY)return;
- var p={};
- p['科目']={select:hw.subj||'其他'};
- p['作业内容']={text:hw.text||''};
- if(hw.due)p['截止日期']={date:hw.due};
- p['记录日期']={date:hw.created||today()};
- p['是否完成']={checkbox:!!hw.done};
- _db.addRecord({databaseId:DATABASE_ID,properties:p}).then(function(){console.log('[database] homework pushed')}).catch(function(err){console.error('[database] push failed:',err)})
+function cloudPull(){
+  const code=getSyncCode(); if(!code)return Promise.resolve(false);
+  _syncStatus="syncing"; updateSyncUI();
+  return cloudFetch(SUPABASE_TABLE+"?code=eq."+encodeURIComponent(code)+"&select=data")
+    .then(rows=>{
+      const remote=rows&&rows.length?rows[0].data:null;
+      const remoteTs=remote&&typeof remote._syncSaved==="number"?remote._syncSaved:0;
+      const localTs=typeof state._syncSaved==="number"?state._syncSaved:0;
+      if(remoteTs>localTs){migrateState(remote); saveQuiet(); renderAll(); _syncStatus="ok"; updateSyncUI(); return true}
+      _syncStatus="ok"; updateSyncUI();
+      return cloudPush().then(()=>false);
+    })
+    .catch(err=>{_syncStatus="error"; updateSyncUI(); console.error("[cloud] pull failed:",err); return false});
 }
-/* ===== Database SDK (记忆复习) ===== */
-var DATABASE_ID_MEM='aRHYDUEjLoUZCNIaGAGk0c';
-function memItemById(id){return id&&id.startsWith('p')?POEMS.find(x=>x.id===id):WORDS.find(x=>x.id===id)}
-function memStatusText(m){if(m.lv>=4)return '已掌握';if(m.lv===0)return '新学';return '需复习'}
-function memoryToProps(id,m){
-  var it=memItemById(id)||{};
-  var p={};
-  p['日期']={date:today()};
-  p['内容']={text: id&&id.startsWith('p')?(it.title||''):(it.w||'')};
-  p['类型']={select: id&&id.startsWith('p')?'古诗文':'单词'};
-  p['状态']={select: memStatusText(m)};
-  p['下次复习']={date:(m&&m.next)?m.next:today()};
-  return p;
-}
-function pushMemory(id){
-  if(!ONLINE||LOCAL_ONLY)return;
-  var m=memProg(id);
-  _db.addRecord({databaseId:DATABASE_ID_MEM,properties:memoryToProps(id,m)}).then(function(){console.log('[database] memory pushed')}).catch(function(err){console.error('[database] memory push failed:',err)})
-}
-function rowToMemory(row){
-  var g=function(k){var v=row[k];if(v==null)return null;if(typeof v==='object'&&v.text!=null)return v.text;return v};
-  var content=g('内容')||'';
-  var typ=g('类型'); var isP=typ==='古诗文';
-  var item=isP?POEMS.find(x=>x.title===content):WORDS.find(x=>x.w===content);
-  var id=item?item.id:null;
-  var stxt=g('状态')||'需复习';
-  var lv= stxt==='已掌握'?4 : stxt==='新学'?0 : 1;
-  var next=g('下次复习'); if(typeof next==='object'&&next!=null)next=next.date||next.text||''; if(next)next=String(next).slice(0,10);
-  var nextDate = (stxt==='已掌握')?null:(next||today());
-  return {id:id, lv:lv, next:nextDate, wrongToday:{date:null,count:0}};
-}
-function pullRemoteMemory(cb){
-  if(!ONLINE||LOCAL_ONLY){if(cb)cb(false);return}
-  var allRows=[],cursor=null;
-  function fetchPage(){
-    _db.query({databaseId:DATABASE_ID_MEM,pageSize:100,startCursor:cursor,sorts:[{property:'日期',direction:'descending'}]}).then(function(result){
-      allRows=allRows.concat(result.results||[]);
-      if(result.hasMore&&result.nextCursor){cursor=result.nextCursor;fetchPage()}
-      else{
-        var seen={};
-        var recs=allRows.map(rowToMemory).filter(function(r){return r&&r.id});
-        recs.forEach(function(r){if(!(r.id in seen)){seen[r.id]=r}});
-        Object.keys(seen).forEach(function(id){ if(!(id in state.memory)){state.memory[id]=seen[id]} });
-        save();
-        if(cb)cb(true,recs.length)
-      }
-    }).catch(function(err){console.error('[database] memory pull failed:',err);if(cb)cb(false)})
-  }
-  fetchPage()
-}
-/* ===== Database SDK (错题) ===== */
-var DATABASE_ID_MK='cJG9ktB4dHiL6pgyXanzSI';
-function mistakeToProps(m){
-  var p={};
-  p['日期']={date:m.created||today()};
-  p['科目']={select:m.subj||'其他'};
-  p['题干摘要']={text:m.ques||''};
-  p['错因']={text:(typeof CAUSES!=='undefined'&&CAUSES[m.cause])?CAUSES[m.cause]:m.cause};
-  p['正确思路']={text:m.answer||''};
-  p['下次复习']={date:m.next||today()};
-  return p;
-}
-function rowToMistake(row){
-  var g=function(k){var v=row[k];if(v==null)return null;if(typeof v==='object'&&v.text!=null)return v.text;return v};
-  var subj=g('科目')||'其他';
-  var next=g('下次复习'); if(typeof next==='object'&&next!=null)next=next.date||next.text||''; if(next)next=String(next).slice(0,10);
-  var causeText=g('错因')||'';
-  var causeKey=causeText;
-  if(typeof CAUSES!=='undefined'){var k=Object.keys(CAUSES).find(function(x){return CAUSES[x]===causeText}); if(k)causeKey=k}
-  var lv=(!next||next==='')?5:1;
-  return {id:row.record_id||uid(),subj:subj,ques:g('题干摘要')||'',cause:causeKey,answer:g('正确思路')||'',lv:lv,next:next||null,created:g('日期')||today()}
-}
-function pushMistake(m){
-  if(!ONLINE||LOCAL_ONLY)return;
-  _db.addRecord({databaseId:DATABASE_ID_MK,properties:mistakeToProps(m)}).then(function(){console.log('[database] mistake pushed')}).catch(function(err){console.error('[database] mistake push failed:',err)})
-}
-function deleteRemoteMistake(recordId){
-  if(!ONLINE||LOCAL_ONLY)return;
-  if(!recordId)return;
-  _db.deleteRecord({databaseId:DATABASE_ID_MK,recordId:recordId}).then(function(){console.log('[database] mistake deleted')}).catch(function(err){console.error('[database] mistake delete failed:',err)})
-}
-function pullRemoteMistakes(cb){
-  if(!ONLINE||LOCAL_ONLY){if(cb)cb(false);return}
-  var allRows=[],cursor=null;
-  function fetchPage(){
-    _db.query({databaseId:DATABASE_ID_MK,pageSize:100,startCursor:cursor}).then(function(result){
-      allRows=allRows.concat(result.results||[]);
-      if(result.hasMore&&result.nextCursor){cursor=result.nextCursor;fetchPage()}
-      else{
-        var recs=allRows.map(rowToMistake).filter(Boolean);
-        var existingQ=new Set(state.mistakes.map(function(m){return m.ques}));
-        recs.forEach(function(r){if(r.ques&&!existingQ.has(r.ques))state.mistakes.push(r)});
-        save();
-        if(cb)cb(true,recs.length)
-      }
-    }).catch(function(err){console.error('[database] mistake pull failed:',err);if(cb)cb(false)})
-  }
-  fetchPage()
-}
+function genSyncCode(){const c="ABCDEFGHJKLMNPQRSTUVWXYZ23456789"; let s=""; for(let i=0;i<8;i++)s+=c[Math.floor(Math.random()*c.length)]; return s}
 function migrateState(obj){
   state=Object.assign(defaultState(),obj,{version:2});
   state.settings=Object.assign(defaultState().settings,obj.settings||{});
@@ -946,7 +870,7 @@ function load(){
     state=defaultState();
     alert("数据异常，已为你开了新本子。");
   }
-  state.meta.lastOpenDate=today(); save();
+  state.meta.lastOpenDate=today(); saveQuiet();
 }
 function checkin(){const t=today(); if(!state.checkins.includes(t)){state.checkins.push(t)} }
 function markUserAction(){const t=today(); if(!state.meta.userActionDates.includes(t))state.meta.userActionDates.push(t)}
@@ -1353,7 +1277,7 @@ function renderHw(){
     if(!due){toast("选个交作业日期"); return}
     const hwRec={id:uid(),subj,text,due,done:false,created:today()};
     state.homework.push(hwRec);
-    save(); renderHw(); renderStreak(); toast("记好了"); pushHwRemote(hwRec);
+    save(); renderHw(); renderStreak(); toast("记好了");
   };
   $$("#page-hw [data-done]").forEach(b=>b.onclick=()=>{
     const h=state.homework.find(x=>x.id===b.dataset.done); if(!h||h.done)return;
@@ -1492,7 +1416,6 @@ function drawMemCard(){
     $("#memForgot").onclick=()=>{
       speechSynthesisCancel();
       memAction(memCardId,false); addExp(0,null);
-      pushMemory(memCardId);
       const count=memWrongCount(memProg(memCardId));
       closeOverlay("memOverlay"); renderAll();
       toast(count>=2?"今天已练习两次，明天再来":"先看一遍，今天还可以再试一次");
@@ -1501,7 +1424,6 @@ function drawMemCard(){
       speechSynthesisCancel();
       const wasLv=memProg(memCardId).lv;
       if(!memAction(memCardId,true))return;
-      pushMemory(memCardId);
       const isP2=memCardId.startsWith("p");
       let exp, lt;
       if(isP2){exp=wasLv===0?5:2; lt=wasLv===0?"pn":"pr"}
@@ -1548,7 +1470,6 @@ function renderMk(){
     if(!answer){toast("写下正确思路，复习时才有用"); return}
     const newMk={id:uid(),subj,ques,cause,answer,lv:1,next:addDays(today(),1),created:today()};
     state.mistakes.push(newMk);
-    pushMistake(newMk);
     addExp(2,"ma"); renderMk();
     toast("记好了，明天开始第一轮复习");
   };
@@ -1576,7 +1497,7 @@ function renderMk(){
   $$("#mkList [data-yes]").forEach(b=>b.onclick=()=>{mkAction(b.dataset.yes,true); addExp(2,"mr"); renderAll()});
   $$("#mkList [data-no]").forEach(b=>b.onclick=()=>{mkAction(b.dataset.no,false); save(); renderAll(); toast("没关系，明天再来一轮")});
   $$("#mkList [data-mkdel]").forEach(b=>b.onclick=()=>{
-    if(b.classList.contains("ask")){const mkId=b.dataset.mkdel; state.mistakes=state.mistakes.filter(x=>x.id!==mkId); deleteRemoteMistake(mkId); save(); renderAll(); toast("已删除")}
+    if(b.classList.contains("ask")){const mkId=b.dataset.mkdel; state.mistakes=state.mistakes.filter(x=>x.id!==mkId); save(); renderAll(); toast("已删除")}
     else{b.classList.add("ask"); b.textContent="再点一次删除"; setTimeout(()=>{if(b.isConnected){b.classList.remove("ask"); b.innerHTML=IC.trash}},2000)}
   });
 }
@@ -1773,7 +1694,7 @@ const layerReturnFocus=new Map();
 function focusables(el){return Array.from(el.querySelectorAll('button:not([disabled]),input:not([disabled]),select:not([disabled]),textarea:not([disabled]),[href],[tabindex]:not([tabindex="-1"])')).filter(x=>x.offsetParent!==null)}
 function openLayer(id){const el=$("#"+id);layerReturnFocus.set(id,document.activeElement);el.classList.add("on");requestAnimationFrame(()=>{const fs=focusables(el);if(fs[0])fs[0].focus()})}
 function closeLayer(id){const el=$("#"+id);el.classList.remove("on");const back=layerReturnFocus.get(id);layerReturnFocus.delete(id);if(back&&back.isConnected)back.focus()}
-function openDrawer(){layerReturnFocus.set("drawer",document.activeElement);$("#drawer").classList.add("on");$("#drawerMask").classList.add("on");requestAnimationFrame(()=>$("#drawerClose").focus())}
+function openDrawer(){layerReturnFocus.set("drawer",document.activeElement);$("#drawer").classList.add("on");$("#drawerMask").classList.add("on");const si=$("#syncCodeInput"); if(si)si.value=getSyncCode(); updateSyncUI(); requestAnimationFrame(()=>$("#drawerClose").focus())}
 function closeDrawer(){$("#drawer").classList.remove("on");$("#drawerMask").classList.remove("on");const back=layerReturnFocus.get("drawer");layerReturnFocus.delete("drawer");if(back&&back.isConnected)back.focus()}
 function closeOverlay(id){closeLayer(id)}
 function trapLayerKey(e){
@@ -1817,6 +1738,19 @@ function bindSettings(){
   $("#exportBtn").onclick=exportJSON;
   $("#importBtn").onclick=()=>$("#importFile").click();
   $("#importFile").onchange=e=>{ if(e.target.files&&e.target.files[0]) importJSONFile(e.target.files[0]); e.target.value=""; };
+  // 云同步
+  $("#syncGenBtn").onclick=()=>{ $("#syncCodeInput").value=genSyncCode(); };
+  $("#syncSaveBtn").onclick=()=>{
+    const code=$("#syncCodeInput").value.trim();
+    if(code.length<6){toast("同步码至少 6 位"); return}
+    setSyncCode(code);
+    state._syncSaved=Date.now(); _writeLocal();
+    cloudPull().then(()=>{ updateSyncUI(); toast("已保存同步码，开始同步"); });
+  };
+  $("#syncNowBtn").onclick=()=>{
+    if(!getSyncCode()){toast("请先输入并保存同步码"); return}
+    cloudPull().then(()=>{ updateSyncUI(); toast("同步完成"); });
+  };
   // 长按 3 秒清空
   const btn=$("#clearAllBtn"), prog=btn.querySelector(".prog"), lb=btn.querySelector(".lb");
   let timer=null, tick=null, start=0;
@@ -1838,9 +1772,7 @@ function bindSettings(){
 /* ==================== 启动 ==================== */
 function renderAll(){renderStreak(); renderToday(); renderHw(); renderMem(); renderMk(); renderNav()}
 load(); bindSettings(); renderAll(); switchTab("today");
-pullRemote(function(ok,n){if(ok&&n){renderHw();renderStreak();console.log('[database] pulled '+n+' homework records')}});
-pullRemoteMemory(function(ok,n){if(ok&&n){renderMem();console.log('[database] pulled '+n+' memory records')}});
-pullRemoteMistakes(function(ok,n){if(ok&&n){renderMk();console.log('[database] pulled '+n+' mistake records')}});
+cloudPull();
 </script>
 </body>
 </html>
