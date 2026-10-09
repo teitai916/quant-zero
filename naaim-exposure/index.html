@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>NAAIM 經理人持倉指數｜主動型經理人美股曝險追蹤</title>
+<style>
+  :root{
+    --bg:#0f1115; --panel:#171a21; --line:#262b33;
+    --text:#e6e8eb; --muted:#8b93a1; --accent:#3fc1c9; --warn:#EF9F27;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--text);
+       font-family:"Segoe UI","Noto Sans TC","Microsoft JhengHei",system-ui,sans-serif}
+  .wrap{max-width:1320px;margin:0 auto;padding:28px 22px 44px}
+  h1{margin:0 0 6px;font-size:23px;font-weight:600;letter-spacing:.3px}
+  .sub{color:var(--muted);font-size:13.5px;line-height:1.75;margin-bottom:14px}
+  .sub b{color:#c3cad6;font-weight:600}
+  .sub a{color:var(--accent);text-decoration:none}
+  .sub a:hover{text-decoration:underline}
+  .warnbar{display:flex;gap:9px;align-items:flex-start;background:rgba(239,159,39,.09);
+           border:1px solid rgba(239,159,39,.35);border-radius:8px;
+           padding:9px 13px;margin-bottom:16px;font-size:12.5px;line-height:1.7;color:#e8c58a}
+  .warnbar b{color:var(--warn)}
+  .cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));
+         gap:10px;margin-bottom:16px}
+  .card{background:var(--panel);border:1px solid var(--line);border-radius:10px;
+        padding:12px 15px}
+  .cl{color:var(--muted);font-size:12px;margin-bottom:5px}
+  .cv{font-size:21px;font-weight:600;letter-spacing:.2px}
+  .cs{color:var(--muted);font-size:11.5px;margin-top:4px}
+  .chart{width:100%;height:620px;background:var(--panel);
+         border:1px solid var(--line);border-radius:10px}
+  .note{color:var(--muted);font-size:12.5px;line-height:1.85;margin-top:18px}
+  .note b{color:#c3cad6;font-weight:600}
+  .note a{color:var(--accent);text-decoration:none}
+  .swatch{display:inline-block;width:9px;height:9px;border-radius:2px;margin-right:6px}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>NAAIM 經理人持倉指數｜主動型經理人美股曝險追蹤</h1>
+  <div class="sub">
+    資料來源：<a href="https://naaim.org/programs/naaim-exposure-index/" target="_blank" rel="noopener">NAAIM Exposure Index®</a>
+    ｜口徑：<b>全體回覆會員曝險的算術平均</b>（100% = 滿倉，值域 −200% ~ +200%）
+    ｜本頁產生 2026-10-09 11:27
+  </div>
+
+  <div class="warnbar">
+    <span>⚠</span>
+    <div><b>資料為延遲版：</b>官方免費頁僅提供帶 <b>約 3 個月（≈13 週）延遲</b>的資料，
+    最新一週為 <b>2026-07-08</b>。這是本頁取得管道（免費 embeddable 端點）的固有限制，
+    並非資料本身停更 —— 當週最新值需向 NAAIM 訂閱取得。</div>
+  </div>
+
+  <div class='cards'><div class='card'><div class='cl'>最新 NAAIM Number</div><div class='cv'>82.95</div><div class='cs'>2026-07-08（延遲版）</div></div><div class='card'><div class='cl'>資料延遲</div><div class='cv'>約 13 週</div><div class='cs'>官方免費源固有限制</div></div><div class='card'><div class='cl'>四分位帶寬（最新）</div><div class='cv'>32.5 pt</div><div class='cs'>Q1 67.5 ~ Q3 100.0</div></div><div class='card'><div class='cl'>全期均值 / σ</div><div class='cv'>82.6 / 12.8</div><div class='cs'>131 週樣本</div></div><div class='card'><div class='cl'>S&P 500（最新對照）</div><div class='cv'>7,483.23</div><div class='cs'>2026-07-01</div></div><div class='card'><div class='cl'>資料區間</div><div class='cv'>131 週</div><div class='cs'>2024-01-10 ~ 2026-07-08</div></div></div>
+
+  <div id="chart" class="chart"></div>
+
+  <div class="note">
+    <b>怎麼讀這張圖</b><br>
+    <span class="swatch" style="background:#3fc1c9"></span><b>NAAIM Number</b>：全體回覆會員美股曝險的算術平均，是衡量<b>主動型經理人實際部位</b>的情緒指標。<br>
+    <span class="swatch" style="background:rgba(63,193,201,.13)"></span><b>四分位帶 Q1~Q3</b>：當週回覆者的 25%~75% 分位區間，帶愈寬代表經理人分歧愈大。<br>
+    <span class="swatch" style="background:#8b93a1"></span><b>全期均值 82.64</b> 與 <b>±1σ（±12.82）</b>：本頁區間內的時間序列統計參考。<br>
+    <span class="swatch" style="background:#EF9F27"></span><b>S&amp;P 500</b>（右軸）：指數與大盤的長期對照。<br>
+    <br>
+    <b>已知限制</b>：① 官方免費源延遲約 13 週；② 本頁以滾動窗口逐週累積，區間會隨時間向前延伸；
+    ③ 統計四分位（Q1/Q3）為官方公布之當週橫截面分位，非時間序列分位。
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/echarts@5.5.1/dist/echarts.min.js"></script>
+<script>
+const DATA = {"dates": ["2024-01-10", "2024-01-17", "2024-01-24", "2024-01-31", "2024-02-07", "2024-02-14", "2024-02-21", "2024-02-28", "2024-03-06", "2024-03-13", "2024-03-20", "2024-03-27", "2024-04-03", "2024-04-10", "2024-04-17", "2024-04-24", "2024-05-01", "2024-05-08", "2024-05-15", "2024-05-22", "2024-05-29", "2024-06-05", "2024-06-12", "2024-06-19", "2024-06-26", "2024-07-03", "2024-07-10", "2024-07-17", "2024-07-24", "2024-07-31", "2024-08-07", "2024-08-14", "2024-08-21", "2024-08-28", "2024-09-04", "2024-09-11", "2024-09-18", "2024-09-25", "2024-10-02", "2024-10-09", "2024-10-16", "2024-10-23", "2024-10-30", "2024-11-06", "2024-11-13", "2024-11-20", "2024-11-27", "2024-12-04", "2024-12-11", "2024-12-18", "2024-12-25", "2025-01-01", "2025-01-08", "2025-01-15", "2025-01-22", "2025-01-29", "2025-02-05", "2025-02-12", "2025-02-19", "2025-02-26", "2025-03-05", "2025-03-12", "2025-03-19", "2025-03-26", "2025-04-02", "2025-04-09", "2025-04-16", "2025-04-23", "2025-04-30", "2025-05-07", "2025-05-14", "2025-05-21", "2025-05-28", "2025-06-04", "2025-06-11", "2025-06-18", "2025-06-25", "2025-07-02", "2025-07-09", "2025-07-16", "2025-07-23", "2025-07-30", "2025-08-06", "2025-08-13", "2025-08-20", "2025-08-27", "2025-09-03", "2025-09-10", "2025-09-17", "2025-09-24", "2025-10-01", "2025-10-08", "2025-10-15", "2025-10-22", "2025-10-29", "2025-11-05", "2025-11-12", "2025-11-19", "2025-11-26", "2025-12-03", "2025-12-10", "2025-12-17", "2025-12-24", "2025-12-31", "2026-01-07", "2026-01-14", "2026-01-21", "2026-01-28", "2026-02-04", "2026-02-11", "2026-02-18", "2026-02-25", "2026-03-04", "2026-03-11", "2026-03-18", "2026-03-25", "2026-04-01", "2026-04-08", "2026-04-15", "2026-04-22", "2026-04-29", "2026-05-06", "2026-05-13", "2026-05-20", "2026-05-27", "2026-06-03", "2026-06-10", "2026-06-17", "2026-06-24", "2026-07-01", "2026-07-08"], "naaim": [80.18, 53.54, 84.13, 87.36, 93.77, 95.58, 74.7, 88.99, 93.99, 104.75, 93.22, 103.88, 84.24, 81.92, 62.98, 59.48, 61.97, 91.55, 89.25, 94.45, 92.21, 68.65, 86.3, 85.26, 85.44, 103.66, 93.84, 87.94, 76.7, 83.93, 75.33, 56.57, 74.68, 81.34, 70.65, 71.93, 87.46, 86.64, 86.93, 90.26, 81.68, 79.13, 82.53, 88.31, 91.6, 91.33, 98.93, 85.49, 99.24, 82.5, 80.39, 64.1, 65.38, 70.21, 86.08, 68.28, 84.91, 75.62, 91.48, 87.87, 74.96, 68.8, 64.64, 57.55, 49.37, 56.96, 35.16, 40.67, 59.92, 81.06, 70.56, 80.87, 88.41, 81.62, 82.66, 94.09, 81.41, 99.3, 86.28, 83.69, 81.07, 76.85, 96.26, 85.66, 98.15, 92.94, 81.58, 86.11, 84.76, 86.24, 80.66, 84.57, 84.87, 90.35, 100.83, 90.06, 87.87, 86.56, 89.92, 98.57, 97.13, 100.7, 95.08, 92.93, 97.72, 96.01, 88.46, 92.58, 84.93, 80.61, 82.87, 74.93, 79.29, 66.99, 60.24, 68.52, 68.36, 69.38, 79.49, 94.15, 93.79, 96.67, 77.34, 82.02, 98.39, 86.82, 79.27, 92.83, 98.59, 84.69, 82.95], "q1": [54.75, 30.0, 80.0, 80.0, 80.0, 84.0, 72.25, 80.0, 85.5, 80.0, 80.0, 91.5, 81.25, 78.5, 41.5, 0.16, 40.0, 76.25, 80.0, 88.75, 75.0, 70.0, 62.0, 79.0, 64.75, 90.0, 80.0, 80.0, 50.0, 76.0, 68.5, 0.56, 50.0, 80.0, 64.3, 60.0, 71.25, 85.0, 75.0, 81.75, 81.25, 75.0, 76.25, 72.5, 87.5, 83.75, 91.5, 82.75, 89.5, 60.0, 75.0, 61.5, 20.0, 37.25, 82.25, 25.38, 76.25, 56.25, 90.0, 58.25, 50.0, 34.38, 0.45, 0.0, 0.75, 0.0, 0.0, 0.0, 50.0, 50.0, 60.0, 66.25, 75.0, 75.0, 76.25, 85.0, 83.5, 86.25, 88.75, 90.0, 85.5, 81.25, 90.0, 90.0, 86.0, 90.0, 85.0, 90.0, 90.0, 80.0, 81.5, 86.5, 77.5, 83.75, 96.0, 77.5, 68.25, 76.25, 80.0, 88.0, 87.25, 87.25, 97.0, 81.25, 85.25, 95.0, 90.0, 80.0, 80.0, 80.0, 77.5, 50.0, 45.0, 50.0, 0.79, 31.75, 37.0, 37.5, 50.0, 80.0, 80.0, 87.5, 78.75, 69.0, 87.5, 85.75, 75.0, 87.5, 85.5, 63.75, 67.5], "q3": [100.0, 97.5, 100.0, 100.0, 100.0, 100.0, 100.0, 100.0, 100.0, 100.0, 100.0, 100.0, 100.0, 100.0, 100.0, 100.0, 100.0, 100.0, 100.0, 110.0, 122.65, 100.0, 100.0, 101.25, 100.0, 110.0, 104.96, 100.0, 100.0, 100.0, 100.0, 100.0, 100.0, 100.0, 100.0, 100.0, 100.0, 100.0, 100.0, 100.0, 100.0, 100.0, 100.0, 100.0, 102.5, 100.0, 111.25, 100.0, 100.0, 100.0, 100.0, 100.0, 100.0, 100.0, 100.0, 100.0, 100.0, 100.0, 100.0, 100.0, 100.0, 100.0, 100.0, 100.0, 99.0, 94.0, 80.0, 85.0, 100.0, 100.0, 100.0, 100.0, 100.0, 100.0, 100.0, 100.0, 100.0, 100.0, 100.0, 100.0, 100.0, 100.0, 100.0, 100.0, 100.0, 100.0, 100.0, 100.0, 100.0, 100.0, 100.0, 100.0, 100.0, 100.0, 110.0, 100.0, 100.0, 100.0, 100.0, 100.0, 100.0, 100.0, 100.0, 100.0, 100.0, 102.5, 100.0, 100.0, 100.0, 100.0, 100.0, 100.0, 100.0, 100.0, 100.0, 100.0, 100.0, 100.0, 100.0, 100.0, 100.0, 100.0, 100.0, 100.0, 100.0, 103.75, 100.0, 100.0, 100.0, 100.0, 100.0], "iqr_span": [45.25, 67.5, 20.0, 20.0, 20.0, 16.0, 27.75, 20.0, 14.5, 20.0, 20.0, 8.5, 18.75, 21.5, 58.5, 99.84, 60.0, 23.75, 20.0, 21.25, 47.650000000000006, 30.0, 38.0, 22.25, 35.25, 20.0, 24.959999999999994, 20.0, 50.0, 24.0, 31.5, 99.44, 50.0, 20.0, 35.7, 40.0, 28.75, 15.0, 25.0, 18.25, 18.75, 25.0, 23.75, 27.5, 15.0, 16.25, 19.75, 17.25, 10.5, 40.0, 25.0, 38.5, 80.0, 62.75, 17.75, 74.62, 23.75, 43.75, 10.0, 41.75, 50.0, 65.62, 99.55, 100.0, 98.25, 94.0, 80.0, 85.0, 50.0, 50.0, 40.0, 33.75, 25.0, 25.0, 23.75, 15.0, 16.5, 13.75, 11.25, 10.0, 14.5, 18.75, 10.0, 10.0, 14.0, 10.0, 15.0, 10.0, 10.0, 20.0, 18.5, 13.5, 22.5, 16.25, 14.0, 22.5, 31.75, 23.75, 20.0, 12.0, 12.75, 12.75, 3.0, 18.75, 14.75, 7.5, 10.0, 20.0, 20.0, 20.0, 22.5, 50.0, 55.0, 50.0, 99.21, 68.25, 63.0, 62.5, 50.0, 20.0, 20.0, 12.5, 21.25, 31.0, 12.5, 18.0, 25.0, 12.5, 14.5, 36.25, 32.5], "dev": [43.94, 71.66, 70.54, 67.72, 40.52, 42.93, 87.34, 63.8, 43.54, 45.2, 71.21, 31.21, 68.21, 65.73, 71.42, 70.79, 76.0, 59.39, 71.74, 72.54, 78.96, 90.94, 56.33, 74.87, 58.35, 55.2, 71.99, 71.55, 54.03, 62.38, 60.29, 89.06, 67.78, 76.26, 70.38, 70.66, 69.36, 75.61, 56.15, 54.22, 70.32, 75.64, 60.95, 56.27, 66.66, 55.21, 44.97, 65.58, 50.55, 55.02, 72.16, 90.01, 55.05, 58.09, 45.88, 65.86, 54.2, 52.44, 49.61, 51.43, 69.74, 70.47, 53.55, 54.17, 83.68, 60.04, 65.53, 50.87, 77.24, 51.46, 65.03, 60.35, 53.2, 67.68, 73.68, 52.15, 72.73, 54.77, 69.71, 57.22, 64.98, 64.89, 35.96, 69.55, 44.79, 44.7, 63.56, 71.06, 71.96, 66.77, 71.13, 69.27, 50.98, 52.1, 55.36, 40.86, 39.42, 51.59, 50.29, 47.59, 45.89, 46.38, 49.27, 48.97, 50.86, 50.37, 60.31, 46.41, 64.57, 63.52, 47.62, 64.84, 49.98, 62.78, 68.13, 47.03, 55.64, 51.31, 66.87, 51.9, 48.61, 43.28, 65.17, 55.01, 40.62, 72.07, 53.3, 49.11, 43.91, 54.64, 58.71], "sp500": [4783.45, 4739.21, 4868.55, 4845.65, 4995.06, 5000.62, 4981.8, 5069.76, 5104.76, 5165.31, 5224.62, 5248.49, 5211.49, 5160.64, 5022.21, 5071.63, 5018.39, 5187.67, 5308.15, 5307.01, 5266.95, 5354.03, 5421.03, 5487.03, 5477.9, 5509.01, 5633.91, 5588.27, 5427.13, 5522.3, 5199.5, 5455.21, 5620.85, 5592.18, 5520.07, 5554.13, 5618.26, 5722.26, 5709.54, 5792.04, 5842.47, 5797.42, 5813.67, 5929.04, 5985.38, 5917.11, 5998.74, 6086.49, 6084.19, 5872.16, 6040.04, 5881.63, 5918.25, 5949.91, 6092.08, 6039.31, 6061.48, 6051.97, 6144.15, 5956.06, 5842.63, 5599.3, 5675.29, 5712.2, 5670.97, 5456.9, 5275.7, 5375.86, 5569.06, 5631.28, 5892.58, 5844.61, 5888.55, 5970.81, 6022.24, 5980.87, 6092.16, 6227.42, 6263.26, 6263.7, 6358.91, 6362.9, 6345.06, 6466.58, 6395.78, 6481.4, 6448.26, 6532.04, 6600.35, 6637.97, 6711.2, 6753.72, 6671.06, 6699.4, 6890.59, 6796.29, 6850.92, 6642.16, 6812.61, 6849.72, 6886.68, 6721.43, 6932.05, 6845.5, 6920.93, 6926.6, 6875.62, 6978.03, 6882.72, 6941.47, 6881.31, 6946.13, 6869.5, 6775.8, 6624.7, 6591.9, 6575.32, 6616.85, 7022.95, 7137.9, 7135.95, 7365.12, 7444.25, 7432.97, 7520.36, 7553.68, 7266.99, 7420.1, 7358.22, 7483.23, null], "mean": 82.64, "stdev": 12.82};
+const CSS = {naaim:'#3fc1c9', band:'rgba(63,193,201,.13)', mean:'#8b93a1',
+             sigma:'rgba(139,147,161,.07)', sp:'#EF9F27'};
+
+const chart = echarts.init(document.getElementById('chart'), null, {renderer:'canvas'});
+const AXIS = {color:'#8b93a1', fontSize:11.5};
+
+function tooltipFmt(params){
+  const i = params[0].dataIndex;
+  const d = DATA.dates[i];
+  let h = '<b>' + d + '</b><br>';
+  h += '<span style="color:' + CSS.naaim + '">●</span> NAAIM：<b>' +
+       (DATA.naaim[i] == null ? '—' : DATA.naaim[i].toFixed(2)) + '</b><br>';
+  h += '<span style="color:' + CSS.band + '">▬</span> 四分位 Q1~Q3：' +
+       (DATA.q1[i] == null ? '—' : DATA.q1[i].toFixed(2) + ' ~ ' + DATA.q3[i].toFixed(2)) + '<br>';
+  h += '　 標準差：' + (DATA.dev[i] == null ? '—' : DATA.dev[i].toFixed(2)) + '<br>';
+  h += '<span style="color:' + CSS.sp + '">●</span> S&amp;P 500：' +
+       (DATA.sp500[i] == null ? '—' : DATA.sp500[i].toFixed(2));
+  return h;
+}
+
+const option = {
+  backgroundColor: 'transparent',
+  textStyle: {fontFamily:'"Segoe UI","Noto Sans TC",system-ui,sans-serif'},
+  tooltip: {
+    trigger:'axis',
+    backgroundColor:'rgba(20,24,31,.96)', borderColor:'#2b323d',
+    textStyle:{color:'#e6e8eb', fontSize:12.5},
+    axisPointer:{type:'cross', lineStyle:{color:'#4a5261'}},
+    formatter: tooltipFmt
+  },
+  legend: {
+    top:6, textStyle:{color:'#8b93a1', fontSize:12}, itemWidth:22, itemHeight:12,
+    itemGap:18, data:['NAAIM Number','S&P 500']
+  },
+  grid:{left:62, right:70, top:56, bottom:78},
+  xAxis:{
+    type:'category', data:DATA.dates, boundaryGap:false,
+    axisLine:{lineStyle:{color:'#3a414d'}}, axisLabel:AXIS, splitLine:{show:false}
+  },
+  yAxis:[
+    {type:'value', name:'NAAIM (%)', scale:true,
+     nameTextStyle:{color:'#8b93a1', fontSize:12},
+     axisLabel:{color:'#8b93a1', fontSize:11.5},
+     splitLine:{lineStyle:{color:'#232830'}}},
+    {type:'value', name:'S&P 500', scale:true,
+     nameTextStyle:{color:'#8b93a1', fontSize:12},
+     axisLabel:{color:'#8b93a1', fontSize:11.5},
+     splitLine:{show:false}}
+  ],
+  dataZoom:[
+    {type:'inside', zoomOnMouseWheel:true},
+    {type:'slider', height:20, bottom:18, borderColor:'#2b323d',
+     fillerColor:'rgba(63,193,201,.12)', handleStyle:{color:'#3fc1c9'},
+     textStyle:{color:'#8b93a1', fontSize:10.5}}
+  ],
+  series:[
+    // 四分位帶：stack(q1 -> q1+span=q3)
+    {name:'__iqr_base', type:'line', data:DATA.q1, stack:'iqr', symbol:'none',
+     showSymbol:false, lineStyle:{opacity:0}, areaStyle:{opacity:0},
+     silent:true, tooltip:{show:false}, z:1},
+    {name:'__iqr_span', type:'line', data:DATA.iqr_span, stack:'iqr', symbol:'none',
+     showSymbol:false, lineStyle:{opacity:0}, areaStyle:{color:CSS.band},
+     silent:true, tooltip:{show:false}, z:1},
+    // 主曲線
+    {name:'NAAIM Number', type:'line', data:DATA.naaim, symbol:'circle',
+     symbolSize:4, showSymbol:false, smooth:false, z:5,
+     lineStyle:{width:2.3, color:CSS.naaim}, itemStyle:{color:CSS.naaim},
+     emphasis:{focus:'series'},
+     markLine:{
+       silent:true, symbol:'none',
+       label:{color:'#8b93a1', fontSize:10.5, position:'insideEndTop',
+              formatter:'全期均值 82.64'},
+       data:[
+         {yAxis:DATA.mean, lineStyle:{color:CSS.mean, width:1.2, type:'dashed'}},
+         {yAxis:DATA.mean - DATA.stdev, lineStyle:{color:'rgba(139,147,161,.5)', width:1, type:'dotted'}},
+         {yAxis:DATA.mean + DATA.stdev, lineStyle:{color:'rgba(139,147,161,.5)', width:1, type:'dotted'}}
+       ]
+     },
+     markArea:{
+       silent:true,
+       itemStyle:{color:CSS.sigma},
+       data:[[{yAxis:DATA.mean - DATA.stdev, itemStyle:{color:CSS.sigma}},
+              {yAxis:DATA.mean + DATA.stdev}]]
+     }
+    },
+    // S&P 500（次軸）
+    {name:'S&P 500', type:'line', data:DATA.sp500, yAxisIndex:1, symbol:'circle',
+     symbolSize:3.5, showSymbol:false, z:3,
+     lineStyle:{width:1.6, color:CSS.sp}, itemStyle:{color:CSS.sp},
+     connectNulls:true, emphasis:{focus:'series'}}
+  ]
+};
+
+chart.setOption(option);
+window.addEventListener('resize', () => chart.resize());
+</script>
+</body>
+</html>
