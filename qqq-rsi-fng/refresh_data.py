@@ -30,7 +30,7 @@ MAX_ATTEMPTS = 3
 RSI_PERIOD = 6
 RSI_THRESHOLD = 22       # 條件① RSI(6) < 22：短線超賣
 FNG_THRESHOLD = 20       # 條件② CNN 指數 < 20：觸發
-VIX_THRESHOLD = 25       # 條件③ VIX > 25：進入高波動
+VIX_THRESHOLD = 30       # 條件③ VIX > 30：進入高波動
 VIX_DAILY_CHANGE_THRESHOLD = 30  # 條件④ VIX 單日漲幅 > 30%：急升觸發
 
 

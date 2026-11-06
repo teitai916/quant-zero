@@ -70,7 +70,7 @@
     <div class="rules">
       <span class="badge b-blue">RSI(6) &lt; 22：短線超賣</span>
       <span class="badge b-red">CNN 指數 &lt; 20：觸發（單個指標觸發）</span>
-      <span class="badge b-red">VIX &gt; 25：進入高波動</span>
+      <span class="badge b-red">VIX &gt; 30：進入高波動</span>
       <span class="badge b-red">VIX 單日漲幅 &gt; 30%：急升觸發</span>
       <span class="badge b-green">4 條件中任 2 個觸發：雙條件訊號</span>
       <span class="badge b-green">任 3 個觸發：三條件高亮訊號</span>
@@ -98,7 +98,7 @@
     <div class="metric">
       <div class="metric-label">VIX 標普 500 波動率</div>
       <div class="metric-value" id="latestVix">—</div>
-      <div class="metric-note" id="latestVixNote">高波動門檻 &gt; 25</div>
+      <div class="metric-note" id="latestVixNote">高波動門檻 &gt; 30</div>
     </div>
     <div class="metric">
       <div class="metric-label">最新交易日狀態</div>
@@ -110,7 +110,7 @@
 </main>
 <footer>
   計算口徑：RSI 使用 Wilder 平滑，週期 N=6，RSI = 100 − 100/(1+RS)，RS 為平均漲幅除以平均跌幅；圖中依 QQQ 收盤價序列計算。<br>
-  四個觸發條件：① RSI(6) 嚴格小於 22（短線超賣）；② CNN 指數嚴格小於 20（觸發）；③ VIX 嚴格高於 25（進入高波動）；④ VIX 單日漲幅嚴格高於 30%（急升觸發）。<br>
+  四個觸發條件：① RSI(6) 嚴格小於 22（短線超賣）；② CNN 指數嚴格小於 20（觸發）；③ VIX 嚴格高於 30（進入高波動）；④ VIX 單日漲幅嚴格高於 30%（急升觸發）。<br>
   訊號分級：同一交易日觸發 1 個條件計為單個指標觸發（僅統計、不上圖標記）；任 2 個觸發為雙條件訊號（綠色菱形）；任 3 個觸發為三條件高亮訊號（橙色大菱形）；4 個全部觸發為 ALL IN 訊號（紅色圖釘）。須在同一交易日皆有有效資料。資料來源：Yahoo Finance（QQQ、^VIX 日線）與 CNN Fear &amp; Greed Index。頁面使用嵌入的歷史快照，並非即時行情；歷史表現不代表未來結果。
 </footer>
 <script>
@@ -166,7 +166,7 @@ const DATA = {"dates":["2023-10-13","2023-10-16","2023-10-17","2023-10-18","2023
 const RSI_PERIOD = 6;
 const RSI_THRESHOLD = 22;
 const FNG_THRESHOLD = 20;
-const VIX_THRESHOLD = 25;
+const VIX_THRESHOLD = 30;
 const VIX_DAILY_CHANGE_THRESHOLD = 30;
 const { dates, close, fng, vix } = DATA;
 
@@ -282,7 +282,7 @@ document.getElementById('latestRsi').textContent = formatValue(rsi[latestIndex])
 document.getElementById('latestFng').textContent = formatValue(fng[latestIndex]);
 document.getElementById('latestVix').textContent = formatValue(vix[latestIndex]);
 document.getElementById('latestVixNote').textContent =
-  `高波動門檻 >25；單日變化 ${vixDailyChange[latestIndex] === null ? '—' : `${vixDailyChange[latestIndex] >= 0 ? '+' : ''}${vixDailyChange[latestIndex].toFixed(2)}%`}`;
+  `高波動門檻 >30；單日變化 ${vixDailyChange[latestIndex] === null ? '—' : `${vixDailyChange[latestIndex] >= 0 ? '+' : ''}${vixDailyChange[latestIndex].toFixed(2)}%`}`;
 document.getElementById('signalCount').textContent =
   `單一 ${singleSignalDays} 日；雙條件 ${doubleSignalDays} 日；三條件 ${tripleSignalDays} 日；ALL IN ${allInSignalDays} 日`;
 
@@ -317,7 +317,7 @@ const option = {
   legend: {
     top: 5,
     textStyle: { color: '#6e7781', fontSize: 11 },
-    data: ['QQQ 收盤', 'RSI(6)', 'CNN 恐懼與貪婪', 'VIX', 'VIX > 25', 'VIX 單日漲幅 > 30%']
+    data: ['QQQ 收盤', 'RSI(6)', 'CNN 恐懼與貪婪', 'VIX', 'VIX > 30', 'VIX 單日漲幅 > 30%']
   },
   tooltip: {
     trigger: 'axis',
@@ -347,7 +347,7 @@ const option = {
         `QQQ 收盤：<b>$${formatValue(close[index])}</b>`,
         `RSI(${RSI_PERIOD})：<b style="color:#2563eb">${formatValue(rsi[index])}</b>`,
         `CNN 指數：<b style="color:${fng[index] !== null && fng[index] < FNG_THRESHOLD ? '#dc2626' : '#16a34a'}">${formatValue(fng[index])}</b>${fng[index] !== null && fng[index] < FNG_THRESHOLD ? '（已觸發 <20）' : ''}`,
-        `VIX：<b style="color:${vix[index] !== null && vix[index] > VIX_THRESHOLD ? '#dc2626' : '#7c3aed'}">${formatValue(vix[index])}</b>${vix[index] !== null && vix[index] > VIX_THRESHOLD ? '（高波動 >25）' : ''}`,
+        `VIX：<b style="color:${vix[index] !== null && vix[index] > VIX_THRESHOLD ? '#dc2626' : '#7c3aed'}">${formatValue(vix[index])}</b>${vix[index] !== null && vix[index] > VIX_THRESHOLD ? '（高波動 >30）' : ''}`,
         `VIX 單日漲幅：<b style="color:#f97316">${vixDailyChange[index] === null ? '—' : `${vixDailyChange[index] >= 0 ? '+' : ''}${vixDailyChange[index].toFixed(2)}%`}</b>${vixDailyChange[index] !== null && vixDailyChange[index] > VIX_DAILY_CHANGE_THRESHOLD ? '（急升 >30%）' : ''}`,
         `觸發條件：<b>${tCount}/4</b> → <b style="color:${tCount >= 3 ? '#dc2626' : tCount === 2 ? '#16a34a' : '#6e7781'}">${tierText}</b>${tCount > 0 ? `（${tTriggered.join('、')}）` : ''}`
       ].join('<br>');
@@ -481,12 +481,12 @@ const option = {
         data: [{
           yAxis: VIX_THRESHOLD,
           lineStyle: { color: '#dc2626', width: 1.2, type: 'dashed' },
-          label: { formatter: '高波動線 25', color: '#dc2626', position: 'insideEndTop' }
+          label: { formatter: '高波動線 30', color: '#dc2626', position: 'insideEndTop' }
         }]
       }
     },
     {
-      name: 'VIX > 25',
+      name: 'VIX > 30',
       type: 'line',
       xAxisIndex: 3,
       yAxisIndex: 3,
