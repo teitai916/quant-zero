@@ -11,13 +11,13 @@ import time
 from datetime import date, datetime, timezone
 from pathlib import Path
 from urllib.error import HTTPError, URLError
-from urllib.parse import urlencode
+from urllib.parse import quote, urlencode
 from urllib.request import Request, urlopen
 
 
 ROOT = Path(__file__).resolve().parent
 HTML_PATH = ROOT / "index.html"
-YAHOO_URL = "https://query1.finance.yahoo.com/v8/finance/chart/QQQ"
+YAHOO_URL = "https://query1.finance.yahoo.com/v8/finance/chart"
 CNN_URL = "https://production.dataviz.cnn.io/index/fearandgreed/graphdata"
 USER_AGENT = (
     "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
@@ -25,6 +25,13 @@ USER_AGENT = (
 )
 START_DATE = date(2023, 10, 13)
 MAX_ATTEMPTS = 3
+
+# 訊號門檻：與 index.html 中的 JS 常數保持一致，修改時兩邊須同步。
+RSI_PERIOD = 6
+RSI_THRESHOLD = 22       # 條件① RSI(6) < 22：短線超賣
+FNG_THRESHOLD = 20       # 條件② CNN 指數 < 20：觸發
+VIX_THRESHOLD = 25       # 條件③ VIX > 25：進入高波動
+VIX_DAILY_CHANGE_THRESHOLD = 30  # 條件④ VIX 單日漲幅 > 30%：急升觸發
 
 
 class RefreshError(Exception):
@@ -58,7 +65,7 @@ def fetch_json(url: str, *, referer: str | None = None) -> dict:
     raise RefreshError("API 重試次數已用盡。")
 
 
-def get_qqq_closes(start_date: date) -> dict[str, float]:
+def get_daily_closes(ticker: str, start_date: date) -> dict[str, float]:
     period1 = int(
         datetime.combine(start_date, datetime.min.time(), timezone.utc).timestamp()
     )
@@ -71,20 +78,22 @@ def get_qqq_closes(start_date: date) -> dict[str, float]:
             "events": "div,splits",
         }
     )
-    payload = fetch_json(f"{YAHOO_URL}?{query}")
+    payload = fetch_json(f"{YAHOO_URL}/{quote(ticker, safe='')}?{query}")
     chart = payload.get("chart", {})
     if chart.get("error"):
-        raise RefreshError(f"Yahoo Finance 錯誤：{chart['error']}")
+        raise RefreshError(f"Yahoo Finance {ticker} 錯誤：{chart['error']}")
     results = chart.get("result") or []
     if not results:
-        raise RefreshError("Yahoo Finance 沒有回傳 QQQ 日線資料。")
+        raise RefreshError(f"Yahoo Finance 沒有回傳 {ticker} 日線資料。")
 
     result = results[0]
     timestamps = result.get("timestamp") or []
     quotes = result.get("indicators", {}).get("quote") or []
     closes = quotes[0].get("close") if quotes else None
     if closes is None or len(timestamps) != len(closes):
-        raise RefreshError("Yahoo Finance 回傳的日期與收盤價資料不完整。")
+        raise RefreshError(
+            f"Yahoo Finance {ticker} 回傳的日期與收盤價資料不完整。"
+        )
 
     rows = {}
     for timestamp, close in zip(timestamps, closes):
@@ -98,7 +107,8 @@ def get_qqq_closes(start_date: date) -> dict[str, float]:
 
     if len(rows) < 100:
         raise RefreshError(
-            f"Yahoo Finance 僅回傳 {len(rows)} 筆資料，少於預期；頁面未更新。"
+            f"Yahoo Finance {ticker} 僅回傳 {len(rows)} 筆資料，"
+            "少於預期；頁面未更新。"
         )
     return rows
 
@@ -131,7 +141,7 @@ def get_cnn_scores(start_date: date) -> dict[str, float]:
     return rows
 
 
-def calculate_rsi(prices: list[float], period: int = 6) -> list[float | None]:
+def calculate_rsi(prices: list[float], period: int = RSI_PERIOD) -> list[float | None]:
     values: list[float | None] = [None] * len(prices)
     if len(prices) <= period:
         return values
@@ -165,25 +175,27 @@ def calculate_rsi(prices: list[float], period: int = 6) -> list[float | None]:
 
 
 def make_dataset() -> dict:
-    qqq = get_qqq_closes(START_DATE)
+    qqq = get_daily_closes("QQQ", START_DATE)
+    vix = get_daily_closes("^VIX", START_DATE)
     cnn = get_cnn_scores(START_DATE)
-    dates = sorted(qqq)
+    common_dates = set(qqq) & set(cnn) & set(vix)
+    if len(common_dates) < 100:
+        raise RefreshError(
+            f"QQQ、CNN 與 VIX 只有 {len(common_dates)} 個共同日期；頁面未更新。"
+        )
+    latest_common_date = max(common_dates)
+    dates = [day for day in sorted(qqq) if day <= latest_common_date]
     if not dates:
         raise RefreshError("沒有可用的 QQQ 交易日資料。")
 
     closes = [qqq[day] for day in dates]
     rsi = calculate_rsi(closes)
     aligned_fng = [cnn.get(day) for day in dates]
-    overlap = sum(value is not None for value in aligned_fng)
-    if overlap < 100:
-        raise RefreshError(
-            f"QQQ 與 CNN 只有 {overlap} 個共同日期；頁面未更新。"
-        )
-
-    if dates[-1] != max(cnn):
+    aligned_vix = [vix.get(day) for day in dates]
+    if aligned_fng[-1] is None or aligned_vix[-1] is None:
         print(
-            f"注意：QQQ 最新日期為 {dates[-1]}，CNN 最新日期為 {max(cnn)}；"
-            "只使用共同交易日期計算訊號。",
+            f"注意：最新共同交易日為 {dates[-1]}；"
+            "部分資料來源的最新交易日不同。",
             file=sys.stderr,
         )
 
@@ -192,7 +204,42 @@ def make_dataset() -> dict:
         "close": closes,
         "rsi6": rsi,
         "fng": aligned_fng,
+        "vix": aligned_vix,
     }
+
+
+def evaluate_latest_signal(data: dict) -> str:
+    """依 index.html 相同的四條件規則評估最新交易日訊號分級。"""
+    rsi = data["rsi6"]
+    fng = data["fng"]
+    vix = data["vix"]
+    index = len(data["dates"]) - 1
+
+    previous_vix = vix[index - 1] if index >= 1 else None
+    vix_daily_change = None
+    if vix[index] is not None and previous_vix not in (None, 0):
+        vix_daily_change = (vix[index] / previous_vix - 1) * 100
+
+    flags = {
+        "RSI 超賣": rsi[index] is not None and rsi[index] < RSI_THRESHOLD,
+        "CNN 恐懼": fng[index] is not None and fng[index] < FNG_THRESHOLD,
+        "VIX 高波動": vix[index] is not None and vix[index] > VIX_THRESHOLD,
+        "VIX 急升": (
+            vix_daily_change is not None
+            and vix_daily_change > VIX_DAILY_CHANGE_THRESHOLD
+        ),
+    }
+    triggered = [name for name, hit in flags.items() if hit]
+    count = len(triggered)
+    tier = {
+        4: "ALL IN 訊號",
+        3: "三條件高亮訊號",
+        2: "雙條件訊號",
+        1: "單個指標觸發",
+        0: "未觸發",
+    }[count]
+    detail = f"（{ '、'.join(triggered) }）" if triggered else ""
+    return f"{tier}{detail}［{count}/4 條件］"
 
 
 def update_html(data: dict) -> None:
@@ -230,22 +277,31 @@ def main() -> int:
     update_html(data)
     latest = len(data["dates"]) - 1
     print(
-        f"更新完成：{data['dates'][0]} 至 {data['dates'][latest]}，"
+        f"更新完成：共同資料日期 {data['dates'][0]} 至 {data['dates'][latest]}，"
         f"共 {len(data['dates'])} 個 QQQ 交易日。"
     )
-    print(f"最新 QQQ 收盤：${data['close'][latest]:.2f}")
     print(
-        f"最新 RSI(6)："
+        f"最新 QQQ 收盤（{data['dates'][latest]}）："
+        f"${data['close'][latest]:.2f}"
+    )
+    print(
+        f"最新 RSI(6)（{data['dates'][latest]}）："
         f"{data['rsi6'][latest]:.2f}"
         if data["rsi6"][latest] is not None
-        else "最新 RSI(6)：資料不足"
+        else f"最新 RSI(6)（{data['dates'][latest]}）：資料不足"
     )
     print(
-        f"最新 CNN 指數："
+        f"最新 CNN 指數（{data['dates'][latest]}）："
         f"{data['fng'][latest]:.2f}"
         if data["fng"][latest] is not None
-        else "最新 CNN 指數：CNN 尚未發布此日資料"
+        else f"最新 CNN 指數（{data['dates'][latest]}）：CNN 尚未發布此日資料"
     )
+    print(
+        f"最新 VIX（{data['dates'][latest]}）：{data['vix'][latest]:.2f}"
+        if data["vix"][latest] is not None
+        else f"最新 VIX（{data['dates'][latest]}）：資料尚未發布"
+    )
+    print(f"最新訊號（{data['dates'][latest]}）：{evaluate_latest_signal(data)}")
     return 0
 
 
